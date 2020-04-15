@@ -78,6 +78,7 @@ data QASM_Gate  =   I Int
             | CRk Int Int Int
             | CR Int Int Double
             | BC Int QASM_Gate
+            | Subroutine String [QASM_Gate]            
             deriving (Eq,Ord,Read,Show)
 
 
@@ -99,6 +100,8 @@ gshow (CZ t c) = "CZ " ++ intercalate ", " [qshow c, qshow t]
 gshow (Swap t c) = "SWAP " ++ intercalate ", " [qshow c, qshow t]
 gshow (Toffoli t c1 c2) = "Toffoli " ++ intercalate ", " [qshow c1, qshow c2, qshow t]
 gshow (Rz x theta) = "Rz " ++ qshow x ++ ", " ++ show theta
+gshow (Ry x theta) = "Ry " ++ qshow x ++ ", " ++ show theta
+gshow (Rx x theta) = "Rx " ++ qshow x ++ ", " ++ show theta
 
 
 ccz2ccx :: QASM_Gate -> [QASM_Gate]
@@ -161,7 +164,8 @@ main' :: String -> IO ()
 main' file = do
   str <- readFile $ file
   let (eps , circ ) = parse_circuit str
-  let len = length eps
+      len = length eps
+  print_unary Preview circ eps
   let exta1 =  xintmap_inserts (map (\x -> (x, Qbit)) [0..len-1]) xintmap_empty
   let (bcir@(c,n), a) = extract_simple (\x -> x) exta1 (circ eps)
   let (a1, gl, a2, mm) = c
