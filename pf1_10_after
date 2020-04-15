@@ -1,4 +1,11 @@
 Inputs: 0:Qbit, 1:Qbit, 2:Qbit, 3:Qbit, 4:Qbit, 5:Qbit, 6:Qbit, 7:Qbit, 8:Qbit, 9:Qbit
+Subroutine(x160000400)["S1", shape "([Q,Q,Q,Q,Q,Q,Q,Q,Q,Q],())"] (0,1,2,3,4,5,6,7,8,9) -> (0,1,2,3,4,5,6,7,8,9)
+Outputs: 0:Qbit, 1:Qbit, 2:Qbit, 3:Qbit, 4:Qbit, 5:Qbit, 6:Qbit, 7:Qbit, 8:Qbit, 9:Qbit
+
+Subroutine: "S1"
+Shape: "([Q,Q,Q,Q,Q,Q,Q,Q,Q,Q],())"
+Controllable: yes
+Inputs: 0:Qbit, 1:Qbit, 2:Qbit, 3:Qbit, 4:Qbit, 5:Qbit, 6:Qbit, 7:Qbit, 8:Qbit, 9:Qbit
 QGate["H"](0) with nocontrol
 QGate["H"](1) with nocontrol
 QGate["not"](0) with controls=[+1] with nocontrol
@@ -149,4 +156,4 @@ QRot["exp(-i%Z)",7.8539821948118860e-1](6)
 QRot["exp(-i%Z)",7.8539819542377054e-1](7)
 QRot["exp(-i%Z)",7.8539817861056049e-1](8)
 QRot["exp(-i%Z)",7.8539818963614139e-1](9)
-
+Outputs: 0:Qbit, 1:Qbit, 2:Qbit, 3:Qbit, 4:Qbit, 5:Qbit, 6:Qbit, 7:Qbit, 8:Qbit, 9:Qbit
