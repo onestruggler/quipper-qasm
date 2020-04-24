@@ -1,0 +1,37 @@
+Inputs: 0:Qbit, 1:Qbit, 2:Qbit, 3:Qbit, 4:Qbit
+QInit0(5) with nocontrol
+QGate["X"](2) with nocontrol
+QGate["not"](5) with controls=[+1, +2] with nocontrol
+QGate["X"](2) with nocontrol
+QInit0(6) with nocontrol
+QGate["not"](6) with controls=[+0, +5] with nocontrol
+QRot["R(2pi/%)",6.249984375039063e-8](6)
+QGate["not"](6) with controls=[+0, +5] with nocontrol
+QTerm0(6) with nocontrol
+QGate["X"](2) with nocontrol
+QGate["not"](5) with controls=[+1, +2] with nocontrol
+QGate["X"](2) with nocontrol
+QTerm0(5) with nocontrol
+QInit0(5) with nocontrol
+QGate["X"](4) with nocontrol
+QGate["not"](5) with controls=[+2, +4] with nocontrol
+QGate["X"](4) with nocontrol
+QGate["X"](3) with controls=[+5]
+QGate["X"](4) with nocontrol
+QGate["not"](5) with controls=[+2, +4] with nocontrol
+QGate["X"](4) with nocontrol
+QTerm0(5) with nocontrol
+QInit0(5) with nocontrol
+QGate["not"](5) with controls=[+0, +1] with nocontrol
+QInit0(6) with nocontrol
+QGate["X"](2) with nocontrol
+QGate["not"](6) with controls=[+2, +5] with nocontrol
+QGate["X"](2) with nocontrol
+QGate["X"](4) with controls=[+6]
+QGate["X"](2) with nocontrol
+QGate["not"](6) with controls=[+2, +5] with nocontrol
+QGate["X"](2) with nocontrol
+QTerm0(6) with nocontrol
+QGate["not"](5) with controls=[+0, +1] with nocontrol
+QTerm0(5) with nocontrol
+Outputs: 0:Qbit, 1:Qbit, 2:Qbit, 3:Qbit, 4:Qbit
