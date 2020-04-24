@@ -13,9 +13,9 @@ ghc -package quipper-language -package quipper-libraries -package mtl -package e
 
 (if ghc still cannot find the required package, try cabal to reinstall them)
 
-(we also include serval test circuit downloaded from: https://github.com/njross/optimizer)
+(we also include serval test circuits downloaded from: https://github.com/njross/optimizer)
 
 # Target language
 We follow the following OpenQASM language specification:
 https://arxiv.org/pdf/1707.03429.pdf
-The output codes can be recoginized by IBM Quantum Experience online OpenQASM circuit editor https://quantum-computing.ibm.com/ (you need an account there which is free to open)
+The output codes can be recoginized by IBM Quantum Experience online OpenQASM circuit editor https://quantum-computing.ibm.com/ (you need an account there which is free to create)
