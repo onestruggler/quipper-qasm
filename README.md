@@ -12,6 +12,7 @@ Translate Quipper ASCII format circuit into OpenQASM 2.0 program.
 ghc -package quipper-language -package quipper-libraries -package mtl -package easyrender -package quipper-utils QasmPrinting
 
 (if ghc still cannot find the required package, try cabal to reinstall them)
+
 (we also include serval test circuit downloaded from: https://github.com/njross/optimizer)
 
 # Target language
