@@ -351,8 +351,8 @@ qasm_render_gate wtm (QInit b w ncf) = do
       case l of
         "not used" -> do
           r <- register_add1 w Qbit ("anc"++ show w)
-          return $ "qreg anc" ++ show w ++ "[1];\nx anc[" ++ show w ++ "];\n"
-        _ -> return $ "x anc[" ++ show w ++ "];\n"
+          return $ "qreg anc" ++ show w ++ "[1];\nx anc"++ show w ++  "[0"  ++ "];\n"
+        _ -> return $ "x anc"++ show w ++ "[0"  ++ "];\n"
 
 
 -- QASM do not support locally init bit, but we can use a global bit
@@ -494,7 +494,7 @@ unJust (Just a) = a
 qasm_of_dbcircuit ::  ErrMsg -> DBCircuit a -> IO ()
 qasm_of_dbcircuit e dbcirc = do
   putStrLn "OPENQASM 2.0;\ninclude \"qelib1.inc\";\n"
-  let regs = "qreg in[" ++ show (IntMap.size qw) ++ "];" ++ if (length cw') > 0 then "\ncreg cin[" ++ show (IntMap.size cw) ++ "];\n" else "\n"
+  let regs = (if (IntMap.size qw == 0) then "" else "qreg in[" ++ show (IntMap.size qw) ++ "];") ++ if (length cw') > 0 then "\ncreg cin[" ++ show (IntMap.size cw) ++ "];\n" else ""
   putStrLn regs
   let wqr = Map.fromList [(i,("in", unJust ((i,wt) `elemIndex` qw'), Qbit)) | (i,wt) <- qw']
   let wcr = Map.fromList [(i,("in", unJust ((i,wt) `elemIndex` cw'), Cbit)) | (i,wt) <- cw']
