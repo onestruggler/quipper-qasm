@@ -229,8 +229,8 @@ qqmap = Map.fromList [
 
 -- we don't need the controlled version for "R(2pi/%)" since
 -- the transformer decompose the control to zero for phase gate.
-  (("R(2pi/%)", 1, 0, False, []), ("rz", "")), -- = rz(pi/2^(%+1)) upto a global phase
-  (("R(2pi/%)", 1, 0, True, []), ("rz", "")), -- = rz(-pi/2^(%+1)) upto a global phase
+  (("R(2pi/%)", 1, 0, False, []), ("p", "")), -- = p(2*pi*i/2^%)
+  (("R(2pi/%)", 1, 0, True, []), ("p", "")), -- = p(-2*pi*i/2^%)
   
   -- controlled version for W is not needed, since we decompe it to
   -- binary and toffoli.
@@ -296,6 +296,13 @@ register_add1 w t n = do
   SM.put (ns,wr')
   return $ n ++ "[0]"
 
+
+render_theta :: String -> InverseFlag -> Timestep -> String
+render_theta name inv theta =
+  show $ (if inv then -1.0 else 1.0) * case name of
+    "exp(-i%Z)" -> theta/2.0
+    "R(2pi/%)" -> 2.0*pi/theta
+    _ -> error "unknown rotation gate"
   
 -- | Generate an QASM representation of a single gate.
 qasm_render_gate :: WireTypeMap -> Gate -> Context String
@@ -312,7 +319,7 @@ qasm_render_gate wtm (QGate name inv ws1 ws2 c ncf) = do
     wc = map (\(Signed x b) -> x) c
 qasm_render_gate wtm (QRot name inv theta ws1 ws2 c ncf) = do
   rs <- sequence $ map register_lookup (wc ++ ws1 ++ ws2)  
-  return $ qasm_name (name, l1, l2, inv, c') ++ "("++ show theta ++ ")" 
+  return $ qasm_name (name, l1, l2, inv, c') ++ "("++ (render_theta name inv theta) ++ ")"
     ++ string_of_list " " "," ";\n" "" id rs
   where
     inv' = inv && not (self_inverse name ws1 ws2)
