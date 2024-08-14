@@ -255,10 +255,15 @@ instance Ord (Signed Wiretype) where
   compare (Signed Qbit b1) (Signed Cbit b2) = GT
   compare (Signed Cbit b1) (Signed Qbit b2) = LT  
 
+remove_controls :: QuipGate -> QuipGate
+remove_controls (name, l1, l2, inv, c) = (name, l1, l2, inv, [])
 
 qasm_name :: QuipGate -> String
-qasm_name n@(name,_,_,_,_) = case Map.lookup n qqmap of
-  Nothing -> error $ show name ++ " Gate not supported"
+qasm_name n@(name,_,_,_,c) = case Map.lookup n qqmap of
+  Nothing ->
+    case Map.lookup (remove_controls n) qqmap of
+      Nothing -> error $ show name ++ " Gate not supported"
+      Just (n',decl) -> "ctrl(" ++ (show $ length c) ++ ") @ " ++ n'
   Just (n',decl) -> n'
 
 register_lookup :: Wire -> Context String
@@ -491,9 +496,14 @@ qasm_of_subroutine (boxid, TypedSubroutine ocirc input_strux output_strux ctrble
 
 unJust (Just a) = a 
 
-qasm_of_dbcircuit ::  ErrMsg -> DBCircuit a -> IO ()
-qasm_of_dbcircuit e dbcirc = do
-  putStrLn "OPENQASM 2.0;\ninclude \"qelib1.inc\";\n"
+data QASMVersion = OpenQASM2 | OpenQASM3
+
+qasm_of_dbcircuit :: QASMVersion -> ErrMsg -> DBCircuit a -> IO ()
+qasm_of_dbcircuit version e dbcirc = do
+  let header = case version of
+        OpenQASM2 -> "OPENQASM 2.0;\ninclude \"qelib1.inc\";\n"
+        OpenQASM3 -> "OPENQASM 3.0;\ninclude \"stdgates.inc\";\n"
+  putStrLn header
   let regs = (if (IntMap.size qw == 0) then "" else "qreg in[" ++ show (IntMap.size qw) ++ "];") ++ if (length cw') > 0 then "\ncreg cin[" ++ show (IntMap.size cw) ++ "];\n" else ""
   putStrLn regs
   let wqr = Map.fromList [(i,("in", unJust ((i,wt) `elemIndex` qw'), Qbit)) | (i,wt) <- qw']
@@ -511,7 +521,8 @@ qasm_of_dbcircuit e dbcirc = do
     errmsg x = e ("operation not permitted during qasm printing: " ++ x)
 
 
-print_dbcircuit_qasm  = qasm_of_dbcircuit
+print_dbcircuit_qasm = qasm_of_dbcircuit OpenQASM2
+print_dbcircuit_qasm3 = qasm_of_dbcircuit OpenQASM3
 
 
 -- | Print a usage message to 'stdout'.
@@ -520,40 +531,50 @@ usage = do
   name <- getProgName
   putStrLn (header name)
     where header name =
-            name ++ " compiles Quipper ASCII format circuit file\n" ++ "to OpenQasm 2.0 program. " ++ "Please using the following command:\n\n" ++ "QasmPrinting 'filename'\n" ++ "or, QasmPrinting -inline 'filename'\n\n" ++ "Since OpenQasm only supports gate subroutine (user-defined unitary gate)\n" ++ "if your Quipper circuit has a subroutine that is not a unitary,\n" ++ "you need use -inline option to inline all the subroutines."
+            name ++ " compiles Quipper ASCII format circuit file to OpenQASM 2.0 or 3.0\n" ++ "program. Please using the following command:\n\n" ++ name ++ " <filename>\n" ++ name ++ " -3 <filename>\n" ++ name ++ " -inline <filename>\n" ++ name ++ " -3 -inline <filename>\n\n" ++ "By default OpenQASM 2.0 is generated unless -3 is passed. Since OpenQASM 2.0 only\n" ++ "supports gate subroutine (user-defined unitary gate) if your Quipper circuit has a\n" ++ "subroutine that is not a unitary, you need use -inline option to inline all the\n" ++ "subroutines."
 
 
 main :: IO ()
 main = do
   argv <- getArgs
---  let argv = words argv'
   case argv of
-    ["-h"]  -> do
-      usage
-      exitSuccess
-    ["--help"] -> do
-      usage
-      exitSuccess
+    ["-h"]  -> handleHelp
+    ["--help"] -> handleHelp
     [fn] -> do
       str <- readFile fn
       let (ins,circuit) = parse_circuit str
       let decomposed_circuit = qasm_generic circuit
       print_generic QASM decomposed_circuit ins
-    ["-inline", fn] -> do
+    ["-3", fn] -> do
       str <- readFile fn
       let (ins,circuit) = parse_circuit str
-      let circuit' = unbox circuit      
-      let decomposed_circuit = qasm_generic circuit'
-      print_generic QASM decomposed_circuit ins
-    ["--inline", fn] -> do
-      str <- readFile fn
-      let (ins,circuit) = parse_circuit str
-      let circuit' = unbox circuit      
-      let decomposed_circuit = qasm_generic circuit'
-      print_generic QASM decomposed_circuit ins
-    o : _ -> do
-      hPutStrLn stderr ("Bad argument or option: '" ++ o ++ "'. Try --help for more info.")
+      let decomposed_circuit = qasm3_generic circuit
+      print_generic QASM3 decomposed_circuit ins
+    ["-inline", fn] -> handleInline fn
+    ["--inline", fn] -> handleInline fn
+    ["-3", "-inline", fn] -> handleInline3 fn
+    ["-3", "--inline", fn] -> handleInline3 fn
+    ["--inline", "-3", fn] -> handleInline3 fn
+    ["-inline", "-3", fn] -> handleInline3 fn
+    _ -> do
+      hPutStrLn stderr ("Bad arguments or options. Try --help for more info.")
       exitFailure
+  where
+    handleHelp = do
+      usage
+      exitSuccess
+    handleInline fn = do
+      str <- readFile fn
+      let (ins,circuit) = parse_circuit str
+      let circuit' = unbox circuit      
+      let decomposed_circuit = qasm_generic circuit'
+      print_generic QASM decomposed_circuit ins
+    handleInline3 fn = do
+      str <- readFile fn
+      let (ins,circuit) = parse_circuit str
+      let circuit' = unbox circuit      
+      let decomposed_circuit = qasm3_generic circuit'
+      print_generic QASM3 decomposed_circuit ins
 
 
 
@@ -590,7 +611,8 @@ data Format =
   | PDF       -- ^ Portable Document Format. One circuit per page.
   | PS        -- ^ PostScript. One circuit per page.
   | ASCII     -- ^ A textual representation of circuits.
-  | QASM     -- ^ A qasm textual representation of circuits.  
+  | QASM      -- ^ OpenQASM 2.0
+  | QASM3     -- ^ OpenQASM 3.0
   | Preview   -- ^ Don't print anything, but preview directly on screen (requires the external program /acroread/).
   | GateCount -- ^ Print statistics on gate counts.
   deriving Show
@@ -604,6 +626,7 @@ format_enum = [
   ("ps", PS),
   ("postscript", PS),
   ("qasm", QASM),
+  ("qasm3", QASM3),
   ("ascii", ASCII),  
   ("preview", Preview),
   ("gatecount", GateCount)
@@ -613,6 +636,7 @@ format_enum = [
 -- the specified format.
 print_dbcircuit :: Format -> ErrMsg -> DBCircuit a -> IO ()
 print_dbcircuit QASM = print_dbcircuit_qasm
+print_dbcircuit QASM3 = print_dbcircuit_qasm3
 
 
 -- ======================================================================
