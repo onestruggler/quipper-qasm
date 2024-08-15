@@ -208,3 +208,6 @@ normalctrls_transformer gate@(T_Comment _ _ _) = identity_transformer gate
 qasm_generic cir = cir' where
   cir' = transform_generic normalctrls_transformer c2
   c2 = transform_generic trimctrls_tof_transformer cir
+
+qasm3_generic cir = cir' where
+  cir' = transform_generic normalctrls_transformer cir
