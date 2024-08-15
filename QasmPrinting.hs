@@ -375,7 +375,7 @@ qasm_render_gate wtm (QMeas w) = do
   (ns,wr) <- SM.get
   let wr' = Map.delete w wr
   let wr'' = Map.insert w ("canc"++ show w,0,Cbit) wr'  
-  return $ "creg canc" ++ show w ++ "[1];\nmeasure -> canc" ++ show w ++ "[0];\n"
+  return $ "creg canc" ++ show w ++ "[1];\nmeasure anc" ++ show w ++ "[0] -> canc" ++ show w ++ "[0];\n"
 
 -- QASM do not support Discard a qubit, we just ignore this 
 qasm_render_gate wtm (QDiscard w) = return ""
