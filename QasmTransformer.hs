@@ -89,7 +89,7 @@ trimctrls_tof_transformer gate@(T_QGate name _ _ inv ncf f) = f $
           ("X", [q], []) -> 2
           ("not", [q], []) -> 2          
 --          ("Y", [q], []) -> 2
---          ("Z", [q], []) -> 2
+          ("Z", [q], []) -> 2
 --          ("iX", [q], []) -> 2
           _ -> 1
     with_combined_controls_toffoli n cs $ \qcs -> do
