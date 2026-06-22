@@ -82,6 +82,28 @@ trimctrls_tof_transformer (T_QGate "W" 2 0 _ ncf f) = f $
         qcs -> do 
           gate_W q1 q2
           return ([q1, q2], [], cs)
+trimctrls_tof_transformer (T_QGate "Z" _ _ inv ncf f) = f $
+  \qs gctls cs -> without_controls_if ncf $ do
+    case qs of
+      [q] -> do
+        -- allow up to 2 controls to be combined for this pattern
+        with_combined_controls_toffoli 2 cs $ \qcs -> do
+          case qcs of
+            -- exactly two controls -> implement CCZ as H-CCX-H on the target
+            [c1, c2] -> do
+              hadamard q
+              qnot q `controlled` [c1, c2]   -- CCX with c1,c2 controlling X on q
+              hadamard q
+              return (qs, gctls, cs)
+            -- otherwise, use the default: CZ with whatever combined controls we have
+            _ -> do
+              named_gate_qulist_at "Z" inv qs gctls `controlled` qcs
+              return (qs, gctls, cs)
+      -- If Z ever appears with a non-1 arity (unlikely), just forward it.
+      _ -> do
+        with_combined_controls_toffoli 2 cs $ \qcs -> do
+          named_gate_qulist_at "Z" inv qs gctls `controlled` qcs
+          return (qs, gctls, cs)
 trimctrls_tof_transformer gate@(T_QGate name _ _ inv ncf f) = f $
   \qs gctls cs -> without_controls_if ncf $ do
     let n = case (name, qs, gctls) of
